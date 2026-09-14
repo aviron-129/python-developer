@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8125:8125"
+    environment:
+      DATABASE_PATH: /data/state.db
+    volumes:
+      - service_data:/data
+
+volumes:
+  service_data:

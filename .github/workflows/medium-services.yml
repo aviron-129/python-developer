@@ -1,0 +1,45 @@
+name: Medium services
+
+on:
+  push:
+    paths:
+      - "medium/**"
+      - ".github/workflows/medium-services.yml"
+  pull_request:
+    paths:
+      - "medium/**"
+      - ".github/workflows/medium-services.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r medium/01_checkout_saga/requirements.txt
+      - name: Run each service test suite
+        run: |
+          set -euo pipefail
+          for dir in medium/*/; do
+            if [ -f "${dir}test_main.py" ]; then
+              echo "== ${dir}"
+              (cd "$dir" && python -m pytest test_main.py -q --tb=line)
+            fi
+          done
+
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker compose files
+        run: |
+          set -euo pipefail
+          for dir in medium/*/; do
+            if [ -f "${dir}docker-compose.yml" ]; then
+              echo "== ${dir}"
+              docker compose -f "${dir}docker-compose.yml" config >/dev/null
+            fi
+          done
